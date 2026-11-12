@@ -126,7 +126,7 @@ class VrMoonBoardApp {
   int curved_vertices_per_strip_;
   std::array<float, 4> last_rendered_orientation_;
   bool has_render_pose_;
-  bool skybox_enabled_ = true;
+  bool skybox_enabled_ = false;
   float skybox_brightness_ = 1.0f;
   std::array<float, 4> recenter_offset_;
   bool has_recenter_offset_;

@@ -1,4 +1,4 @@
-name: Release MoonBoard
+name: Release MoonBoard VR
 
 on:
   push:
@@ -90,7 +90,7 @@ jobs:
             echo "Expected release APK not found: $APK_PATH" >&2
             exit 1
           fi
-          cp "$APK_PATH" "MoonBoard-${RELEASE_TAG}.apk"
+          cp "$APK_PATH" "MoonBoard-VR-${RELEASE_TAG}.apk"
 
       - name: Publish GitHub Release
         env:
@@ -99,7 +99,7 @@ jobs:
         run: |
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" \
-              --title "MoonBoard ${RELEASE_TAG}" \
+              --title "MoonBoard VR ${RELEASE_TAG}" \
               --generate-notes
           fi
-          gh release upload "$RELEASE_TAG" "MoonBoard-${RELEASE_TAG}.apk" --clobber
+          gh release upload "$RELEASE_TAG" "MoonBoard-VR-${RELEASE_TAG}.apk" --clobber

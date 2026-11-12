@@ -1,4 +1,4 @@
-name: Build MoonBoard
+name: Build MoonBoard VR
 
 on:
   workflow_dispatch:
@@ -79,7 +79,7 @@ jobs:
           APK_PATH="app/build/outputs/apk/vrMode/${BUILD_TYPE,,}/app-vrMode-${BUILD_TYPE,,}.apk"
           
           if [ -f "$APK_PATH" ]; then
-            NEW_NAME="MoonBoard-VrMode-${WORKFLOW_VERSION}.apk"
+            NEW_NAME="MoonBoard-VR-${WORKFLOW_VERSION}.apk"
             cp "$APK_PATH" "$NEW_NAME"
             echo "APK_NAME=$NEW_NAME" >> $GITHUB_ENV
             echo "APK exists at: $APK_PATH"
@@ -92,7 +92,7 @@ jobs:
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MoonBoard-VrMode-${{ steps.version.outputs.WORKFLOW_VERSION }}
+          name: MoonBoard-VR-${{ steps.version.outputs.WORKFLOW_VERSION }}
           path: MoonBoard-*.apk
           retention-days: 30
 

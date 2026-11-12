@@ -1,6 +1,6 @@
 # MoonBoard
 
-MoonBoard is an experimental Android game-streaming client based on
+MoonBoard VR is an independent Android VR game-streaming client by KoiStudio Angeles 8A, based on
 [Moonlight for Android](https://github.com/moonlight-stream/moonlight-android).
 It preserves Moonlight's familiar PC discovery, pairing, streaming, and input
 features, and adds a Google Cardboard VR mode that places the streamed screen
@@ -204,6 +204,12 @@ Moonlight was started by students at [Case Western Reserve
 University](https://case.edu/) during MHacks. MoonBoard fork contributions are
 maintained by Yasurolled, with development assisted by GitHub Copilot.
 
-Copyright (C) 2026 Yasurolled for MoonBoard fork contributions. Original
+Copyright (C) 2026 Yasurolled for upstream MoonBoard fork contributions. Copyright (C) 2026 KoiStudio Angeles 8A for its own original downstream modifications and branding. Original
 Moonlight and third-party copyright notices remain applicable to their
 respective work. See [LICENSE.txt](LICENSE.txt) for the repository's license.
+
+## KoiStudio Angeles 8A distribution
+
+MoonBoard VR is a downstream branded build maintained by KoiStudio Angeles 8A. KoiStudio claims authorship only over its own branding, packaging, documentation, and original modifications; it does not claim ownership of Moonlight or prior MoonBoard contributors work.
+
+This project remains subject to the GPL-3.0 license and all applicable upstream and third-party notices. When distributing binaries, provide the corresponding source code and preserve the original copyright and license notices. See LICENSE.txt and the included third-party notices.

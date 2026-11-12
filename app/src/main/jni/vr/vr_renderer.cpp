@@ -1,4 +1,4 @@
-#include "vr_renderer.h"
+﻿#include "vr_renderer.h"
 
 #include <jni.h>
 #include <android/asset_manager_jni.h>
@@ -518,6 +518,20 @@ void VrMoonBoardApp::OnDrawFrame() {
 
   SetCurrentFramePose(head_orientation);
   UpdatePanelDrag(head_position, head_orientation);
+
+  // Head-follow mode: keep the streamed desktop at a fixed offset from the
+  // current Cardboard head pose, so it remains directly in front of the user.
+  // The view matrix is the inverse head pose; composing the panel with the
+  // head pose cancels head rotation/translation and creates a head-locked screen.
+  const Quatf head_rotation(head_orientation[0], head_orientation[1],
+                            head_orientation[2], head_orientation[3]);
+  const float half_width = kScreenWidthMeters * 0.5f * screen_size_multiplier_;
+  const float half_height = half_width / kScreenAspectRatio;
+  const std::array<float, 3> panel_scale = {half_width, -half_height, 1.0f};
+  model_matrix_ = GetTranslationMatrix(head_position) * head_rotation.ToMatrix() *
+      GetTranslationMatrix({0.0f, 0.0f, -screen_distance_meters_}) *
+      GetScaleMatrix(panel_scale);
+
   RenderVideoToTexture(head_position, head_orientation);
 
   int64_t display_timestamp = GetBootTimeNano() + kDisplayPosePredictionNanos;
@@ -918,82 +932,6 @@ void VrMoonBoardApp::RenderVideoToTexture(
     glDepthFunc(GL_LESS);
   }
 
-  glDisable(GL_DEPTH_TEST);
-  glUseProgram(line_program_);
-  glEnableVertexAttribArray(line_pos_attrib_);
-  glUniform4f(line_color_uniform_, 0.05f, 0.48f, 0.85f, 1.f);
-  const GLfloat desktop_title_bar[] = {
-      -1.f, -1.00f, 0.01f,
-       1.f, -1.00f, 0.01f,
-      -1.f, -0.82f, 0.01f,
-       1.f, -0.82f, 0.01f,
-  };
-  const GLfloat camera_title_bar[] = {
-      -1.f, -1.00f, 0.01f,
-       1.f, -1.00f, 0.01f,
-      -1.f, -0.68f, 0.01f,
-       1.f, -0.68f, 0.01f,
-  };
-  const GLfloat title_grip[] = {
-      -0.08f, -0.90f, 0.02f,
-      -0.04f, -0.90f, 0.02f,
-       0.00f, -0.90f, 0.02f,
-       0.04f, -0.90f, 0.02f,
-       0.08f, -0.90f, 0.02f,
-  };
-  static const std::vector<GLfloat> desktop_title =
-      BuildTitleLabel("DESKTOP", -0.90f);
-  static const std::vector<GLfloat> camera_title =
-      BuildTitleLabel("CAMERA", -0.90f);
-  for (int eye_index = 0; eye_index < kEyeCount; ++eye_index) {
-    float eye_from_head_raw[16];
-    CardboardLensDistortion_getEyeFromHeadMatrix(
-        lens_distortion_, eyes[eye_index], eye_from_head_raw);
-    Matrix4x4 eye_from_head = GetMatrixFromGlArray(eye_from_head_raw);
-    float projection_raw[16];
-    CardboardLensDistortion_getProjectionMatrix(
-        lens_distortion_, eyes[eye_index], kZNear, kZFar, projection_raw);
-    Matrix4x4 projection = GetMatrixFromGlArray(projection_raw);
-    Matrix4x4 view = eye_from_head * head_view;
-
-    glViewport(viewport_x[eye_index], 0, viewport_width[eye_index],
-               screen_height_);
-    std::array<float, 16> mvp_gl =
-        (projection * view * model_matrix_).ToGlArray();
-    glUniformMatrix4fv(line_mvp_uniform_, 1, GL_FALSE, mvp_gl.data());
-    glVertexAttribPointer(line_pos_attrib_, 3, GL_FLOAT, GL_FALSE, 0,
-                          desktop_title_bar);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glUniform4f(line_color_uniform_, 0.12f, 0.58f, 0.38f, 1.f);
-    glVertexAttribPointer(line_pos_attrib_, 3, GL_FLOAT, GL_FALSE, 0,
-                          title_grip);
-    glDrawArrays(GL_LINES, 0, 5);
-    glUniform4f(line_color_uniform_, 1.f, 1.f, 1.f, 1.f);
-    glVertexAttribPointer(line_pos_attrib_, 3, GL_FLOAT, GL_FALSE, 0,
-                          desktop_title.data());
-    glDrawArrays(GL_TRIANGLES, 0,
-                 static_cast<GLsizei>(desktop_title.size() / 3));
-
-    if (camera_enabled_) {
-      glUniform4f(line_color_uniform_, 0.82f, 0.34f, 0.08f, 1.f);
-      std::array<float, 16> camera_mvp_gl =
-          (projection * view * camera_model_matrix_).ToGlArray();
-      glUniformMatrix4fv(line_mvp_uniform_, 1, GL_FALSE,
-                         camera_mvp_gl.data());
-      glVertexAttribPointer(line_pos_attrib_, 3, GL_FLOAT, GL_FALSE, 0,
-                            camera_title_bar);
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      glVertexAttribPointer(line_pos_attrib_, 3, GL_FLOAT, GL_FALSE, 0,
-                            title_grip);
-      glDrawArrays(GL_LINES, 0, 5);
-      glVertexAttribPointer(line_pos_attrib_, 3, GL_FLOAT, GL_FALSE, 0,
-                            camera_title.data());
-      glDrawArrays(GL_TRIANGLES, 0,
-                   static_cast<GLsizei>(camera_title.size() / 3));
-    }
-  }
-  glDisableVertexAttribArray(line_pos_attrib_);
-  glDisable(GL_DEPTH_TEST);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -1402,3 +1340,4 @@ void VrMoonBoardApp::UpdatePanelDrag(
 }
 
 }  // namespace moonboard_vr
+
